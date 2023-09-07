@@ -8,16 +8,12 @@
 import React, { useState, useEffect } from 'react';
 import { useKeepAwake } from '@sayem314/react-native-keep-awake';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
   TouchableOpacity
 } from 'react-native';
-import { IsMuted, findServer, getMicState, switchMicState } from './src/utils'; 
+import { IsMuted, findServer, getMicState, switchMicState, isServerRunning } from './src/utils'; 
 
 function App(): JSX.Element {
   useKeepAwake();
@@ -44,6 +40,19 @@ function App(): JSX.Element {
   useEffect(() => {
     fetchState();
   }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      (async () => {
+        if (!searchingForServer && !await isServerRunning())
+        {
+          setErrorMsg('Server is not running. Please start it on your computer');
+        }
+      })();
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [searchingForServer]);
 
   const switchMic = async () => {
     try
