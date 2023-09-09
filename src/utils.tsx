@@ -2,7 +2,7 @@ import  axios from 'axios';
 
 const PORT = 3123;
 const TIMEOUT = 1000; // milliseconds
-const SEARCH_TIMEOUT = 2000;
+const SEARCH_TIMEOUT = 1000;
 const REUSE_TIMEOUT = 2000;
 
 export type IsMuted = 0 | 1;
@@ -55,7 +55,7 @@ export const isServerRunning = async (ipToCheck: string): Promise<boolean> => {
         ip = ipToCheck;
         const url = `http://${ip}:${PORT}/state`
         await axios.get(url, { timeout: REUSE_TIMEOUT });
-        
+
         return true;
     }
     catch (e)
