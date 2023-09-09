@@ -1,20 +1,22 @@
 import  axios from 'axios';
 
 const PORT = 3123;
-const TIMEOUT = 20; // milliseconds
+const TIMEOUT = 1000; // milliseconds
+const SEARCH_TIMEOUT = 2000;
+const REUSE_TIMEOUT = 2000;
 
 export type IsMuted = 0 | 1;
 let ip: string;
 
 export const findServer = async () => {
-
         const ipMask = '192.168.1.';
-        for (let i = 2; i < 254; i++)
+        for (let i = 2; i <= 254; i++)
         {
             try
             {
                 ip = `${ipMask}${i}`;
-                const res = await axios.get(`http://${ip}:${PORT}/state`, { timeout: TIMEOUT });
+                const url = `http://${ip}:${PORT}/state`;
+                const res = await axios.get(url, { timeout: SEARCH_TIMEOUT });
 
                 return ip;
             }
@@ -47,19 +49,18 @@ export const switchMicState = async (): Promise<void> => {
     }
 };
 
-export const isServerRunning = async (): Promise<boolean> => {
-    if (!ip || ip.length === 0)
-    {
-        return true; // server is not found yet so skip the check for now
-    }
+export const isServerRunning = async (ipToCheck: string): Promise<boolean> => {
     try
     {
-
-        const res = await axios.get(`http://${ip}:${PORT}/state`, { timeout: TIMEOUT });
-
+        ip = ipToCheck;
+        const url = `http://${ip}:${PORT}/state`
+        await axios.get(url, { timeout: REUSE_TIMEOUT });
+        
         return true;
     }
-    catch (e) {
+    catch (e)
+    {
+        console.error(e);
         return false;
     }
 };

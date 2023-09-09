@@ -14,6 +14,31 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { IsMuted, findServer, getMicState, switchMicState, isServerRunning } from './src/utils'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const KEY = 'ip';
+
+const storeData = async (value: string) => {
+  try {
+    await AsyncStorage.setItem(KEY, value);
+  } catch (e) {
+    // saving error
+  }
+};
+
+const getData = async () => {
+  try {
+    const value = await AsyncStorage.getItem(KEY);
+    if (value !== null) {
+      return value;
+    }
+  } catch (e) {
+    // error reading value
+  }
+  return null;
+};
+
+
 
 function App(): JSX.Element {
   useKeepAwake();
@@ -21,7 +46,7 @@ function App(): JSX.Element {
   const [isMuted, setIsMuted] = useState<IsMuted>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fetchState = async () => {
+  const searchForServer = async () => {
     setSearchingForServer(true);
     setErrorMsg(null);
 
@@ -29,6 +54,7 @@ function App(): JSX.Element {
     setSearchingForServer(false);
     
     if (found) {
+      await storeData(found);
       setIsMuted(await getMicState());
     } 
     else
@@ -37,22 +63,26 @@ function App(): JSX.Element {
     }
   };
 
+  const fetchState = async () => {
+    setSearchingForServer(false);
+    setErrorMsg(null);
+    const ip = await getData();
+    if (ip && ip.length > 0)
+    {
+      if (!await isServerRunning(ip))
+      {
+        await searchForServer();
+      }
+    }
+    else
+    {
+      await searchForServer();
+    }
+  };
+
   useEffect(() => {
     fetchState();
   }, []);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      (async () => {
-        if (!searchingForServer && !await isServerRunning())
-        {
-          setErrorMsg('Server is not running. Please start it on your computer');
-        }
-      })();
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [searchingForServer]);
 
   const switchMic = async () => {
     try
