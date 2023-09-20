@@ -45,12 +45,13 @@ function App(): JSX.Element {
   const [searchingForServer, setSearchingForServer] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<IsMuted>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [currentIp, setCurrentIp] = useState<number>(1);
 
   const searchForServer = async () => {
     setSearchingForServer(true);
     setErrorMsg(null);
 
-    const found = await findServer();
+    const found = await findServer(setCurrentIp);
     setSearchingForServer(false);
     
     if (found) {
@@ -81,7 +82,14 @@ function App(): JSX.Element {
   };
 
   useEffect(() => {
-    fetchState();
+    try
+    {
+      fetchState()
+    } 
+    catch (err)
+    {
+      console.error(err);
+    };
   }, []);
 
   const switchMic = async () => {
@@ -102,7 +110,7 @@ function App(): JSX.Element {
   return (
 
     <View style={styles.container}>
-      {!errorMsg && searchingForServer && <Text style={styles.errorMsg} >Searching for server...</Text>}
+      {!errorMsg && searchingForServer && <Text style={styles.errorMsg} >Searching for server ({currentIp})...</Text>}
       {errorMsg && <Text style={styles.errorMsg} >{errorMsg}</Text>}
       {!searchingForServer && !errorMsg && <TouchableOpacity onPress={switchMic} style={buttonStyles}>
         <Text style={styles.appButtonText} >{buttonText}</Text>

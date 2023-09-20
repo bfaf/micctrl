@@ -8,12 +8,13 @@ const REUSE_TIMEOUT = 2000;
 export type IsMuted = 0 | 1;
 let ip: string;
 
-export const findServer = async () => {
+export const findServer = async (cb: (ip: number) => void) => {
         const ipMask = '192.168.1.';
         for (let i = 2; i <= 254; i++)
         {
             try
             {
+                cb(i);
                 ip = `${ipMask}${i}`;
                 const url = `http://${ip}:${PORT}/state`;
                 const res = await axios.get(url, { timeout: SEARCH_TIMEOUT });
